@@ -11,3 +11,6 @@ wheels/
 
 # Dot Envs
 .env
+
+# Data Directory
+data/
