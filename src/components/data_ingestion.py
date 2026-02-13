@@ -14,10 +14,9 @@ def run_ingestion():
         os.mkdir(RAW_DATA_DIR)
         print("Created data directory for ingestions...")
 
-    api.dataset_download_files(DATASET_NAME, path=RAW_DATA_DIR)
+    api.dataset_download_files(DATASET_NAME, path=RAW_DATA_DIR, quiet=False)
 
-    zip_file = f"{RAW_DATA_DIR}/{DATASET_NAME}.zip"
-
+def extract(zip_file):
     if os.path.exists(zip_file):
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             zip_ref.extractall(path=RAW_DATA_DIR)
@@ -29,3 +28,4 @@ def run_ingestion():
 
 if __name__ == "__main__":
     run_ingestion()
+    extract(RAW_DATA_DIR / "ai-art-vs-human-art.zip")
