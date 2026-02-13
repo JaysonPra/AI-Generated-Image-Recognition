@@ -10,7 +10,9 @@ dependencies = [
     "kaggle>=2.0.0",
     "mlflow>=3.9.0",
     "pandas>=2.3.3",
+    "pillow>=12.1.1",
     "pydantic>=2.12.5",
+    "seaborn>=0.13.2",
     "torch>=2.10.0",
     "torchvision>=0.25.0",
 ]
