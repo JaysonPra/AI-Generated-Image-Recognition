@@ -13,4 +13,5 @@ wheels/
 .env
 
 # Data Directory
-data/
+data/processed
+data/raw
