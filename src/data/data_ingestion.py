@@ -7,6 +7,8 @@ import zipfile
 load_dotenv()
 
 def run_ingestion():
+    """Starts the installation of the dataset through Kaggle
+    """
     api = KaggleApi()
     api.authenticate()
 
@@ -17,6 +19,11 @@ def run_ingestion():
     api.dataset_download_files(DATASET_NAME, path=RAW_DATA_DIR, quiet=False)
 
 def extract(zip_file):
+    """Function to extract a zip file
+
+    Args:
+        zip_file (str): The location of the zip file
+    """
     if os.path.exists(zip_file):
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             zip_ref.extractall(path=RAW_DATA_DIR)

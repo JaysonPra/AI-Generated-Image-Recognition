@@ -3,6 +3,15 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 def make_dataset(accepted_extensions, data_directory):
+    """Function to make a DataFrame for image paths and labels
+
+    Args:
+        accepted_extensions (tuple): A tuple of extensions to be accepted. Example: ('.png', '.jpeg')
+        data_directory (str): Directory of the Images
+
+    Returns:
+        pd.DataFrame: DataFrame with image path and label
+    """
     data = []
 
     for folder in ['AiArtData', 'RealArt']:
