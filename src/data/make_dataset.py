@@ -35,16 +35,13 @@ if __name__ == "__main__":
     )
 
     if not df.empty:
-        train_val_df, test_df = train_test_split(
-            df, test_size=0.15, stratify=df["label"], random_state=42
-        )
-
-        train_df, val_df = train_test_split(
-            train_val_df, test_size=0.176, stratify=train_val_df["label"], random_state=42
+        train_df, test_df = train_test_split(
+            df, test_size=0.20, stratify=df["label"], random_state=42
         )
 
         PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
         train_df.to_csv(PROCESSED_DATA_DIR / "train.csv", index=False)
-        val_df.to_csv(PROCESSED_DATA_DIR / "val.csv", index=False)
         test_df.to_csv(PROCESSED_DATA_DIR / "test.csv", index=False)
+
+        print("Files written succesfully...")
