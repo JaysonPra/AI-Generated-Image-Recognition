@@ -1,87 +1,64 @@
 import torch
-from src.data.dataloader import get_dataloader
-from torchvision import models, transforms
-from torch import nn, optim
+from torch import nn
 from torch.utils.data import Subset
 from sklearn.model_selection import StratifiedKFold
+import numpy as np
+import pandas as pd
+
+from src.data.dataloader import get_dataloader
+from src.data.dataset import ImageDataset
+from config.config import PROCESSED_DATA_DIR
+from src.data.transforms import get_transformation
+from src.model.resnet import get_trainable_model
+from src.utils.train_utils import get_optimizer
+from src.utils.common_utils import run_epoch
 
 def train_model(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device {device}")
 
-    train_loader = get_dataloader(
-        csv_file=config["csv_file"], 
-        batch_size=config["training"]["batch_size"], 
-        transform=_map_transformations(config),
-        shuffle=config["training"]["shuffle"]
-    )
+    train_csv = PROCESSED_DATA_DIR / "train.csv"
+    df = pd.read_csv(train_csv)
+    labels = df['label'].values
 
-    model = _get_trainable_model().to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = _get_optimizer(config, model)
+    skf = StratifiedKFold(n_splits=config["training"]["n_splits"])
 
-    for epoch in range(1, config["training"]["epochs"]+1):
-        model.train()
-        running_loss = 0.0
+    train_dataset_full = ImageDataset(df, transform=get_transformation(config, is_training=True))
+    val_dataset_full = ImageDataset(df, transform=get_transformation(config, is_training=False))
 
-        for images, labels in train_loader:
-            images, labels = images.to(device), labels.to(device)
+    fold_results = []
 
-            outputs = model(images)
-            loss = criterion(outputs, labels)
+    for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(labels)), labels)):
+        print(f"Fold {fold+1}...")
+        best_fold_acc = 0.0
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+        train_loader = get_dataloader(
+            dataset=Subset(train_dataset_full, train_idx),
+            batch_size=config["training"]["batch_size"],
+            shuffle=True
+        )
 
-            running_loss += loss.item()
+        val_loader = get_dataloader(
+            dataset=Subset(val_dataset_full, val_idx),
+            batch_size=config["training"]["batch_size"],
+            shuffle=config["training"]["shuffle"]
+        )
 
-        print(f"Epoch {epoch} complete. Avg loss: {running_loss / len(train_loader)}") 
+        model = get_trainable_model().to(device)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = get_optimizer(config, model)
+        
+        for epoch in range(1, config["training"]["epochs"]+1):
+            train_loss, train_acc = run_epoch(model, train_loader, criterion, device, optimizer)
 
+            val_loss, val_acc = run_epoch(model, val_loader, criterion, device)
 
-def _get_trainable_model():
-    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+            if val_acc > best_fold_acc:
+                best_fold_acc = val_acc
+        
+        fold_results.append(best_fold_acc)
+        
+        del model, optimizer, train_loader, val_loader
+        torch.cuda.empty_cache()
 
-    for param in model.parameters():
-        param.requires_grad = False
-
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 2)
-
-    return model
-
-def _get_optimizer(model, config):
-    optimizer_name = config["training"]["optimizer"]
-    optimizer_class = getattr(optim, optimizer_name)
-
-    return optimizer_class(
-        model.fc.parameters(),
-        **config["training"]["optimizer_params"]
-    )
-
-def _map_transformations(config):
-    augmentation_config = config["training"]["augmentations"]
-
-    transformations_list = [
-        transforms.Resize((256, 256)),
-        transforms.RandomResizedCrop(224)
-    ]
-
-    transformation_map = {
-        "horizontalflip": transforms.RandomHorizontalFlip,
-        "verticalflip": transforms.RandomVerticalFlip,
-        "rotation": transforms.RandomRotation
-    }
-
-    for trans_name, trans_class in transformation_map.items():
-        if trans_name in augmentation_config:
-            params = augmentation_config[trans_name].get("parameters", {})
-
-            transformations_list.append(trans_class(**params))
-
-    transformations_list.extend([
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
-
-    return transforms.Compose(transformations_list)
+    print(f"Final CV Results Accuracy: {np.mean(fold_results):.2f}%")
