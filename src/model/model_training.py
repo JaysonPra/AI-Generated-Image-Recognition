@@ -7,7 +7,7 @@ import pandas as pd
 
 from src.data.dataloader import get_dataloader
 from src.data.dataset import ImageDataset
-from config.config import PROCESSED_DATA_DIR
+from config.config import PROCESSED_DATA_DIR, MODEL_SAVE_DIR
 from src.data.transforms import get_transformation
 from src.model.resnet import get_trainable_model
 from src.utils.train_utils import get_optimizer
@@ -20,6 +20,10 @@ def train_model(config):
     train_csv = PROCESSED_DATA_DIR / "train.csv"
     df = pd.read_csv(train_csv)
     labels = df['label'].values
+
+    experiment_name = config["experimentation"].get("experiment_name", "default_run")
+    save_dir = MODEL_SAVE_DIR / "checkpoints" / experiment_name
+    save_dir.mkdir(parents=True, exist_ok=True)
 
     skf = StratifiedKFold(n_splits=config["training"]["n_splits"])
 
@@ -55,6 +59,16 @@ def train_model(config):
 
             if val_acc > best_fold_acc:
                 best_fold_acc = val_acc
+
+                save_path = save_dir / f"resnet_fold_{fold}_best.pth"
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'acc': val_acc
+                }, save_path)
+
+                print(f"New best model saved for Fold {fold}: {val_acc:.2f}%")
         
         fold_results.append(best_fold_acc)
         
