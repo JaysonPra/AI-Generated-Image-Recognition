@@ -19,7 +19,7 @@ def test_model(config, model_path):
         shuffle=False
     )
 
-    model = get_trainable_model().to(device)
+    model = get_trainable_model(config).to(device)
     checkpoint = torch.load(model_path)
     model.load_state_dict(checkpoint["model_state_dict"])
 
