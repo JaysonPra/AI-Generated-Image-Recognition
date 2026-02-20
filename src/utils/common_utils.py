@@ -12,11 +12,11 @@ def run_epoch(model, loader, criterion, device, optimizer=None):
         for images, targets in loader:
             images, targets = images.to(device), targets.to(device)
 
-            outputs = model(image)
+            outputs = model(images)
             loss = criterion(outputs, targets)
 
             if is_train:
-                optimzer.zero_grad()
+                optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
 
