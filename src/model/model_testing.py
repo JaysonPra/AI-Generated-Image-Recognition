@@ -8,6 +8,12 @@ from src.utils.common_utils import run_epoch
 from config.config import PROCESSED_DATA_DIR
 
 def test_model(config, model_path):
+    """Tests the given model using the test.csv file
+
+    Args:
+        config (dict): The loaded YAML config file
+        model_path (str): Exact path of the .pth file for testing
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     test_csv = PROCESSED_DATA_DIR / "test.csv"

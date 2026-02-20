@@ -1,4 +1,14 @@
+from torchvision import transforms
 def get_transformation(config, is_training=True):
+    """Returns a transforms.Compose object
+
+    Args:
+        config (dict): The loaded YAML config file
+        is_training (bool, optional): Set training mode. Defaults to True.
+
+    Returns:
+        transforms.Compose: Created object for transformation 
+    """
     transformations_list = [transforms.Resize((256, 256))]
     
     if is_training:

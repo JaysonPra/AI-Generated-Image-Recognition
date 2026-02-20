@@ -1,4 +1,13 @@
+from torchvision import models
 def get_trainable_model(config):
+    """Get the trainable model of ResNet. The last layer is reset to 2 output neurons.
+
+    Args:
+        config (dict): The loaded YAML config file
+
+    Returns:
+        torchvision.models.Module: ResNet Model for training / testing
+    """
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
 
     num_ftrs = model.fc.in_features

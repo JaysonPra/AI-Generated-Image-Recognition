@@ -14,6 +14,11 @@ from src.utils.train_utils import get_optimizer
 from src.utils.common_utils import run_epoch
 
 def train_model(config):
+    """Trains the model using the train.csv file
+
+    Args:
+        config (dict): The loaded YAML config file
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device {device}")
 
