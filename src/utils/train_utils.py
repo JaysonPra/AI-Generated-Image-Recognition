@@ -7,7 +7,7 @@ def get_optimizer(config, model):
         model (torch.nn.Module): The Neural Network model
 
     Returns:
-        torch.optim.Module: The optimizer for weigh updates
+        torch.optim.Module: The optimizer for weight updates
     """
     optimizer_name = config["training"]["optimizer"]
     optimizer_class = getattr(optim, optimizer_name)
