@@ -1,0 +1,31 @@
+experimentation:
+  experiment_name: "resnet50_face_detection_v1"
+
+training:
+  n_splits: 5
+  epochs: 10
+  shuffle: false
+
+  batch_size_options: [8, 16]
+  lr_range: [1e-5, 1e-2]
+
+  optimizer:
+    type: "Adam"
+
+  augmentations:
+    horizontalflip:
+      enabled: true
+      parameters:
+        p: 0.5
+    rotation:
+      enabled: true
+      parameters:
+        degrees: 30
+    verticalflip:
+      enabled: false
+      parameters:
+        p: 0.5
+
+experiment:
+  run_name: "initial_kfold_test"
+  n_trials: 20
