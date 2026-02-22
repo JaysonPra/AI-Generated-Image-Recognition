@@ -13,11 +13,15 @@ from src.model.resnet import get_trainable_model
 from src.utils.train_utils import get_optimizer
 from src.utils.common_utils import run_epoch
 
-def train_model(config):
-    """Trains the model using the train.csv file
+def train_model(config, is_final):
+    """Model Training function
 
     Args:
         config (dict): The loaded YAML config file
+        is_final (bool): Set final or KFold training
+
+    Returns:
+        tuple: Mean Accuracy, Standard Deviation of Accuracy 
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device {device}")
@@ -34,8 +38,18 @@ def train_model(config):
 
     train_dataset_full = ImageDataset(df, transform=get_transformation(config, is_training=True))
     val_dataset_full = ImageDataset(df, transform=get_transformation(config, is_training=False))
-
     fold_results = []
+
+    if is_final:
+        full_loader = get_dataloader(train_dataset_full, batch_size=config["training"]["batch_size"])
+        model = get_trainable_model().to(device)
+
+        save_path = MODEL_SAVE_DIR / "final" / "final_model.pth"
+
+        best_acc = run_training_session(model, full_loader, full_loader, config, device, save_path)
+        print("Final Production Model Trained!")
+
+        return best_acc, 0.0
 
     for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(labels)), labels)):
         print(f"Fold {fold+1}...")
@@ -54,30 +68,30 @@ def train_model(config):
         )
 
         model = get_trainable_model().to(device)
-        criterion = nn.CrossEntropyLoss()
-        optimizer = get_optimizer(config, model)
-        
-        for epoch in range(1, config["training"]["epochs"]+1):
-            train_loss, train_acc = run_epoch(model, train_loader, criterion, device, optimizer)
 
-            val_loss, val_acc = run_epoch(model, val_loader, criterion, device)
+        fold_save_path = save_dir / f"resnet_fold_{fold}_best.pth"
 
-            if val_acc > best_fold_acc:
-                best_fold_acc = val_acc
-
-                save_path = save_dir / f"resnet_fold_{fold}_best.pth"
-                torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'acc': val_acc
-                }, save_path)
-
-                print(f"New best model saved for Fold {fold}: {val_acc:.2f}%")
-        
+        best_fold_acc = run_training_session(model, train_loader, val_loader, config, device, fold_save_path)
         fold_results.append(best_fold_acc)
         
-        del model, optimizer, train_loader, val_loader
+        del model, train_loader, val_loader
         torch.cuda.empty_cache()
 
-    print(f"Final CV Results Accuracy: {np.mean(fold_results):.2f}%")
+    mean_acc = np.mean(fold_results)
+    std_acc = np.std(fold_results)
+
+    return mean_acc, std_acc
+
+def run_training_session(model, train_loader, val_loader, config, device, save_path):
+    criterion = nn.CrossEntropyLoss()
+    optimizer = get_optimizer(config, model)
+    best_acc = 0.0
+
+    for epoch in range(1, config["training"]["epochs"]+1):
+        run_epoch(model, train_loader, criterion, device, optimizer)
+        _, val_acc = run_epoch(model, val_loader, criterion, device)
+
+        if val_acc > best_acc:
+            best_acc = val_acc
+            torch.save(model.state_dict(), save_path)
+    return best_acc
