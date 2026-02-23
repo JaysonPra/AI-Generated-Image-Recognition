@@ -13,76 +13,20 @@ from src.model.resnet import get_trainable_model
 from src.utils.train_utils import get_optimizer
 from src.utils.common_utils import run_epoch
 
-def train_model(config, is_final):
-    """Model Training function
+def _run_training_session(config, train_loader, val_loader, save_path):
+    """Trains a single model
 
     Args:
         config (dict): The loaded YAML config file
-        is_final (bool): Set final or KFold training
+        train_loader (torch.utils.data.DataLoader): DataLoader for the Training Dataset
+        val_loader (torch.utils.data.DataLoader): DataLoader for the Validation Dataset
+        save_path (str): Path to save model
 
     Returns:
-        tuple: Mean Accuracy, Standard Deviation of Accuracy 
+        tuple: Best Accuracy, Model Object
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device {device}")
-
-    train_csv = PROCESSED_DATA_DIR / "train.csv"
-    df = pd.read_csv(train_csv)
-    labels = df['label'].values
-
-    experiment_name = config["experimentation"].get("experiment_name", "default_run")
-    save_dir = MODEL_SAVE_DIR / "checkpoints" / experiment_name
-    save_dir.mkdir(parents=True, exist_ok=True)
-
-    skf = StratifiedKFold(n_splits=config["training"]["n_splits"])
-
-    train_dataset_full = ImageDataset(df, transform=get_transformation(config, is_training=True))
-    val_dataset_full = ImageDataset(df, transform=get_transformation(config, is_training=False))
-    fold_results = []
-
-    if is_final:
-        full_loader = get_dataloader(train_dataset_full, batch_size=config["training"]["batch_size"])
-        model = get_trainable_model().to(device)
-
-        save_path = MODEL_SAVE_DIR / "final" / "final_model.pth"
-
-        best_acc = run_training_session(model, full_loader, full_loader, config, device, save_path)
-        print("Final Production Model Trained!")
-
-        return best_acc, 0.0
-
-    for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(labels)), labels)):
-        print(f"Fold {fold+1}...")
-        best_fold_acc = 0.0
-
-        train_loader = get_dataloader(
-            dataset=Subset(train_dataset_full, train_idx),
-            batch_size=config["training"]["batch_size"],
-            shuffle=True
-        )
-
-        val_loader = get_dataloader(
-            dataset=Subset(val_dataset_full, val_idx),
-            batch_size=config["training"]["batch_size"],
-            shuffle=config["training"]["shuffle"]
-        )
-
-        model = get_trainable_model().to(device)
-
-        fold_save_path = save_dir / f"resnet_fold_{fold}_best.pth"
-
-        best_fold_acc = run_training_session(model, train_loader, val_loader, config, device, fold_save_path)
-        fold_results.append(best_fold_acc)
-        
-        del model, train_loader, val_loader
-        torch.cuda.empty_cache()
-
-    mean_acc = np.mean(fold_results)
-    std_acc = np.std(fold_results)
-
-    return mean_acc, std_acc
-
-def run_training_session(model, train_loader, val_loader, config, device, save_path):
+    model = get_trainable_model().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = get_optimizer(config, model)
     best_acc = 0.0
@@ -93,5 +37,80 @@ def run_training_session(model, train_loader, val_loader, config, device, save_p
 
         if val_acc > best_acc:
             best_acc = val_acc
-            torch.save(model.state_dict(), save_path)
-    return best_acc
+            torch.save({'model_state_dict': model.state_dict()}, save_path)
+ 
+    checkpoint = torch.load(save_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    return best_acc, model
+
+def train_model_cv(config):
+    """Model Training with Cross Validation
+
+    Args:
+        config (dict): The loaded YAML config file
+
+    Returns:
+        tuple: Mean Accuracy, Standard Deviation of Accuracy
+    """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    train_csv = PROCESSED_DATA_DIR / "train.csv"
+    df = pd.read_csv(train_csv)
+    labels = df['label'].values
+
+    experiment_name = config["experiment"].get("experiment_name", "default_run")
+    save_dir = MODEL_SAVE_DIR / "checkpoints" / experiment_name
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    train_dataset_full = ImageDataset(df, transform=get_transformation(config, is_training=True))
+    val_dataset_full = ImageDataset(df, transform=get_transformation(config, is_training=False))
+
+    skf = StratifiedKFold(n_splits=config["training"]["n_splits"])
+    fold_results = []
+
+    for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(labels)), labels)):
+        fold_save_path = save_dir / f"resnet_fold_{fold}_best.pth"
+        
+        train_loader = get_dataloader(
+            Subset(train_dataset_full, train_idx), 
+            batch_size=config["training"]["batch_size"],
+            shuffle=True
+        )
+
+        val_loader = get_dataloader(
+            Subset(val_dataset_full, val_idx), 
+            batch_size=config["training"]["batch_size"], 
+            shuffle=False
+        )
+
+        acc, _ = _run_training_session(config, train_loader, val_loader, fold_save_path)
+        fold_results.append(acc)
+        torch.cuda.empty_cache()
+
+    return np.mean(fold_results), np.std(fold_results)
+
+def train_model_final(config):
+    """Train model once and evaluate on the Test file
+
+    Args:
+        config (dict): The loaded YAML config file
+
+    Returns:
+        tuple: Accuracy of Model, Model Object
+    """
+    train_csv = PROCESSED_DATA_DIR / "train.csv"
+    test_csv = PROCESSED_DATA_DIR / "test.csv"
+    train_df = pd.read_csv(train_csv)
+    test_df = pd.read_csv(test_csv)
+    
+    experiment_name = config["experiment"].get("experiment_name", "default_run")
+    save_path = MODEL_SAVE_DIR / "final" / f"{experiment_name}.pth"
+    save_path.parent.mkdir(parents=True, exist_ok=True)
+
+    train_dataset_full = ImageDataset(train_df, transform=get_transformation(config, is_training=True))
+    test_dataset_full = ImageDataset(test_df, transform=get_transformation(config, is_training=False))
+    
+    train_loader = get_dataloader(train_dataset_full, batch_size=config["training"]["batch_size"], shuffle=True)
+    test_loader = get_dataloader(test_dataset_full, batch_size=config["training"]["batch_size"], shuffle=False)
+
+    best_acc, model = _run_training_session(config, train_loader, test_loader, save_path)
+    return best_acc, model
