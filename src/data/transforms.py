@@ -25,8 +25,9 @@ def get_transformation(config, is_training=True):
         for trans_name, trans_class in transformation_map.items():
             if trans_name in augmentation_config:
                 params = augmentation_config[trans_name].get("parameters", {})
-
                 transformations_list.append(trans_class(**params))
+    else:
+        transformations_list.append(transforms.CenterCrop(224))
 
     transformations_list.extend([
         transforms.ToTensor(),
