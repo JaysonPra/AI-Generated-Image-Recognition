@@ -2,8 +2,9 @@ import mlflow
 import optuna
 import yaml
 from src.model.model_training import train_model_cv, train_model_final
-from config.config import MODEL_SAVE_DIR
+from config.config import MODEL_SAVE_DIR, EXPERIMENTATION_DIR
 import torch
+import argparse
 
 def run_experiment(config_path):
     """Starts MLFlow Logging and Optuna Study
@@ -75,3 +76,18 @@ def run_experiment(config_path):
 
         mlflow.log_params(study.best_params)
         mlflow.log_metric("best_accuracy", study.best_value)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="AI Generated Image Recognition")
+
+    parser.add_argument(
+        "--config",
+        required=True,
+        type=str,
+        help="Write the name of the YAML config file"
+    )
+
+    args = parser.parse_args()
+    if args.config:
+        config_file = EXPERIMENTATION_DIR / args.config
+        run_experiment(config_file)
