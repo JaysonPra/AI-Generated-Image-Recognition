@@ -5,7 +5,7 @@ class ImageDataset(Dataset):
     def __init__(self, dataframe, transform=None):
         """
         Args:
-            csv_file (str): Path to the train/val/test CSV file 
+            dataframe (pd.DataFrame): DataFrame to be made into a Dataset Object
             transform (callable, optional): Optional transforms to be applied to a image. Defaults to None.
         """
         self.df = dataframe
