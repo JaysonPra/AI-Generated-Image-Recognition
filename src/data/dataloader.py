@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 
-def get_dataloader(dataset, batch_size, shuffle, transform=None):
+def get_dataloader(dataset, batch_size, shuffle):
     """Function to get the Image DataLoader
 
     Args:
