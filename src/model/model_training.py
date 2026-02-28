@@ -26,7 +26,7 @@ def _run_training_session(config, train_loader, val_loader, save_path):
         tuple: Best Accuracy, Model Object
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = get_trainable_model().to(device)
+    model = get_trainable_model(config).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = get_optimizer(config, model)
     best_acc = 0.0

@@ -1,4 +1,6 @@
 from torchvision import models
+from torch import nn
+
 def get_trainable_model(config):
     """Get the trainable model of ResNet. The last layer is reset to 2 output neurons.
 

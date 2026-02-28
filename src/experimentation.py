@@ -26,7 +26,7 @@ def run_experiment(config_path):
         Returns:
             float: Returns accuracy of the current studied model
         """
-        config["training"]["optimizer"]["lr"] = trial.suggest_float(
+        config["training"]["optimizer_params"]["lr"] = trial.suggest_float(
             name="lr",
             low=config["training"]["lr_range"][0],
             high=config["training"]["lr_range"][1],
@@ -57,7 +57,7 @@ def run_experiment(config_path):
         study.optimize(objective, n_trials=config["experiment"]["n_trials"])
 
 
-        config["training"]["optimizer"]["lr"] = study.best_params["lr"]
+        config["training"]["optimizer_params"]["lr"] = study.best_params["lr"]
         config["training"]["batch_size"] = study.best_params["batch_size"]
 
         final_acc, model = train_model_final(config)
