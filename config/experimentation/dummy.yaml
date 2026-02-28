@@ -1,31 +1,27 @@
-experimentation:
-  experiment_name: "resnet50_face_detection_v1"
+experiment:
+  experiment_name: "AI_vs_Real_Detection"
+  run_name: "resnet18_dummy"
+  n_trials: 10 # Change this
 
 training:
-  n_splits: 5
-  epochs: 10
-  shuffle: false
+  epochs: 5 # Change this
+  n_splits: 5 # Change this
+  batch_size: 8
+  batch_size_options: [4, 8, 16] # Change this
 
-  batch_size_options: [8, 16]
-  lr_range: [1e-5, 1e-2]
+  lr_range: [0.00001, 0.001] # Change this
 
-  optimizer:
-    type: "Adam"
+  optimizer: "Adam" # Change this
+  optimizer_params:
+    lr: 0.001
+    weight_decay: 0.0001 # Change this
 
-  augmentations:
+  fine_tune: true # Change this
+
+  augmentations: # Can change all of these
     horizontalflip:
-      enabled: true
       parameters:
         p: 0.5
     rotation:
-      enabled: true
       parameters:
-        degrees: 30
-    verticalflip:
-      enabled: false
-      parameters:
-        p: 0.5
-
-experiment:
-  run_name: "initial_kfold_test"
-  n_trials: 20
+        degrees: 15
