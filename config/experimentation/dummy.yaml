@@ -1,24 +1,22 @@
 experiment:
   experiment_name: "AI_vs_Real_Detection"
   run_name: "resnet18_dummy"
-  n_trials: 10 # Change this
+  n_trials: 10
 
 training:
-  epochs: 5 # Change this
-  n_splits: 5 # Change this
+  epochs: 5
+  n_splits: 5
   batch_size: 8
-  batch_size_options: [4, 8, 16] # Change this
+  batch_size_options: [4, 8, 16]
 
-  lr_range: [0.00001, 0.001] # Change this
+  lr_range: [0.00001, 0.001]
 
-  optimizer: "Adam" # Change this
-  optimizer_params:
-    lr: 0.001
-    weight_decay: 0.0001 # Change this
+  optimizer: "Adam"
+  optimizer_params: {}
 
-  fine_tune: true # Change this
+  fine_tune: true
 
-  augmentations: # Can change all of these
+  augmentations:
     horizontalflip:
       parameters:
         p: 0.5
