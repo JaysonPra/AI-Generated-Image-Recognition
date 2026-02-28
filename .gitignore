@@ -15,3 +15,7 @@ wheels/
 # Data Directory
 data/processed
 data/raw
+
+# MLflow
+mlflow.db
+mlruns/
