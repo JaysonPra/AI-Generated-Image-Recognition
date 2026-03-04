@@ -12,6 +12,9 @@ wheels/
 # Dot Envs
 .env
 
+# Models
+models/
+
 # Data Directory
 data/processed
 data/raw
