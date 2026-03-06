@@ -12,6 +12,7 @@ from src.data.dataloader import get_dataloader
 
 app = FastAPI()
 model = None
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_NAME = "AI-Image-Classifier"
 
 @app.on_event("startup")
@@ -22,6 +23,7 @@ def _load_model():
     model_uri = f"models:/{MODEL_NAME}@champion"
     try:
         model = mlflow.pytorch.load_model(model_uri)
+        model.to(DEVICE)
         model.eval()
         print("Model Loaded Successfully!")
     except Exception as e:
@@ -89,9 +91,9 @@ async def predict(file: UploadFile = File(...)):
     image = Image.open(io.BytesIO(content)).convert('RGB')
 
     transforms = get_transformation(config=None, is_training=False)
-    input_tensor = transforms(image).unsqueeze(0)
+    input_tensor = transforms(image).unsqueeze(0).to(DEVICE)
 
-    with torch.no_grad():
+    with torch.inference_mode():
         logits = model(input_tensor)
         probabilities = F.softmax(logits, dim=1)
 

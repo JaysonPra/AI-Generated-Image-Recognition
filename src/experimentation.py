@@ -56,7 +56,6 @@ def run_experiment(config_path):
         study = optuna.create_study(direction="maximize")
         study.optimize(objective, n_trials=config["experiment"]["n_trials"])
 
-
         config["training"]["optimizer_params"]["lr"] = study.best_params["lr"]
         config["training"]["batch_size"] = study.best_params["batch_size"]
 
