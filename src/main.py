@@ -4,6 +4,7 @@ import mlflow
 from mlflow.tracking import MlflowClient
 from PIL import Image
 import io
+import time
 import torch.nn.functional as F
 
 from src.data.transforms import get_transformation
@@ -86,6 +87,8 @@ async def predict(file: UploadFile = File(...)):
     Returns:
         dict: Prediction and Confidence
     """
+    start_time = time.perf_counter()
+
     content = await file.read()
     labels = {0: "Real", 1: "AI"}
     image = Image.open(io.BytesIO(content)).convert('RGB')
@@ -99,8 +102,11 @@ async def predict(file: UploadFile = File(...)):
 
         confidence, class_id = torch.max(probabilities, dim=1)
 
+    end_time = time.perf_counter()
+    latency = end_time - start_time
+
     return {
         "prediction": labels[class_id.item()],
-        "confidence": round(confidence.item(), 4)
+        "confidence": round(confidence.item(), 4),
+        "latency_seconds": round(latency, 4)
     }
-
