@@ -110,3 +110,7 @@ async def predict(file: UploadFile = File(...)):
         "confidence": round(confidence.item(), 4),
         "latency_seconds": round(latency, 4)
     }
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "model_loaded": model is not None}
