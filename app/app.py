@@ -1,6 +1,12 @@
 import streamlit as st
-from app.api_interaction import wait_for_api
 
 st.set_page_config(
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
+
+pg = st.navigation([
+    st.Page("pages/home.py", title="AI Image Recognition", default=True)
+], position="top")
+
+pg.run()
