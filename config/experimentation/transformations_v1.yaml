@@ -1,0 +1,30 @@
+experiment:
+  experiment_name: "AI_vs_Real_Detection"
+  run_name: "Transformations Added"
+  n_trials: 5
+
+training:
+  epochs: 5
+  n_splits: 5
+  batch_size_options: [8]
+
+  lr_range: [0.00001, 0.0001]
+
+  optimizer: "Adam"
+  optimizer_params: {}
+
+  fine_tune: true
+
+  augmentations:
+    horizontalflip:
+      parameters:
+        p: 0.5
+    rotation:
+      parameters:
+        degrees: 15
+    verticalflip:
+      parameters:
+        p: 0.5
+    gaussianblur:
+      parameters:
+        kernel_size: 3
