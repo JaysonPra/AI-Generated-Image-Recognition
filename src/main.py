@@ -10,11 +10,11 @@ import torch.nn.functional as F
 from src.data.transforms import get_transformation
 from src.data.dataset import ImageDataset
 from src.data.dataloader import get_dataloader
+from config.config import MODEL_NAME
 
 app = FastAPI()
 model = None
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-MODEL_NAME = "AI-Image-Classifier"
 
 @app.on_event("startup")
 def _load_model():
