@@ -19,7 +19,8 @@ def get_transformation(config, is_training=True):
         transformation_map = {
             "horizontalflip": transforms.RandomHorizontalFlip,
             "verticalflip": transforms.RandomVerticalFlip,
-            "rotation": transforms.RandomRotation
+            "rotation": transforms.RandomRotation,
+            "gaussianblur": transforms.GaussianBlur
         }
 
         for trans_name, trans_class in transformation_map.items():
