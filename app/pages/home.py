@@ -30,4 +30,4 @@ for i, uploaded_file in enumerate(uploaded_files):
         confidence, class_id = torch.max(probabilities, dim=1)
     
     labels = {0: "Real", 1: "AI"}
-    st.write(f"Image {i+1}: {labels[class_id.item()]}. Confidence: {round(confidence.item(), 4)*100}% ")
+    st.markdown(f"Image {i+1}: **{labels[class_id.item()]}**. Confidence: **{round(confidence.item(), 4)*100}%**")
