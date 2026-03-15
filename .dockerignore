@@ -1,0 +1,12 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pt
+*.pkl
+*.csv
+mlruns/
+.git/
+*.ipynb
+notebooks/
+data/

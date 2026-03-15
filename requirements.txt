@@ -254,11 +254,17 @@ sympy==1.14.0
     # via torch
 threadpoolctl==3.6.0
     # via scikit-learn
-torch==2.10.0+cpu
+torch==2.10.0 ; sys_platform == 'darwin'
     # via
     #   ai-image-recognition
     #   torchvision
-torchvision==0.25.0+cpu
+torch==2.10.0+cpu ; sys_platform != 'darwin'
+    # via
+    #   ai-image-recognition
+    #   torchvision
+torchvision==0.25.0 ; sys_platform == 'darwin'
+    # via ai-image-recognition
+torchvision==0.25.0+cpu ; sys_platform != 'darwin'
     # via ai-image-recognition
 tqdm==4.67.3
     # via optuna
