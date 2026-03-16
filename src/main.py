@@ -8,8 +8,6 @@ import time
 import torch.nn.functional as F
 
 from src.data.transforms import get_transformation
-from src.data.dataset import ImageDataset
-from src.data.dataloader import get_dataloader
 from config.config import MODEL_NAME
 
 app = FastAPI()
