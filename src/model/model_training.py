@@ -52,7 +52,6 @@ def train_model_cv(config):
     Returns:
         tuple: Mean Accuracy, Standard Deviation of Accuracy
     """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_csv = PROCESSED_DATA_DIR / "train.csv"
     df = pd.read_csv(train_csv)
     labels = df['label'].values
