@@ -7,6 +7,8 @@ services:
       - ./mlruns:/app/mlruns
       - ./mlflow.db:/app/mlflow.db
     working_dir: /app
+    environment:
+      - MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE=true
     command: mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlflow.db
 
   fastapi:
@@ -17,3 +19,5 @@ services:
       - mlflow
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./mlruns:/app/mlruns
