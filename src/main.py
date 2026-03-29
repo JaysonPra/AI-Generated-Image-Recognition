@@ -4,6 +4,7 @@ import mlflow
 from mlflow.tracking import MlflowClient
 from PIL import Image
 import io
+import os
 import time
 import torch.nn.functional as F
 
@@ -14,6 +15,8 @@ app = FastAPI()
 model = None
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
+
 @app.on_event("startup")
 def _load_model():
     """Loads the champion model
@@ -21,7 +24,7 @@ def _load_model():
     global model
     model_uri = f"models:/{MODEL_NAME}@champion"
     try:
-        model = mlflow.pytorch.load_model(model_uri)
+        model = mlflow.pytorch.load_model(model_uri, map_location=torch.device("cpu"))
         model.to(DEVICE)
         model.eval()
         print("Model Loaded Successfully!")

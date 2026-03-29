@@ -2,9 +2,11 @@ import mlflow
 import optuna
 import yaml
 from src.model.model_training import train_model_cv, train_model_final
-from config.config import MODEL_SAVE_DIR, EXPERIMENTATION_DIR
+from config.config import EXPERIMENTATION_DIR
 import torch
 import argparse
+
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
 
 def run_experiment(config_path):
     """Starts MLFlow Logging and Optuna Study
