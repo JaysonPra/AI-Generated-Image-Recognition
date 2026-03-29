@@ -1,12 +1,12 @@
 experiment:
   experiment_name: "AI_vs_Real_Detection"
   run_name: "Transformations Added"
-  n_trials: 5
+  n_trials: 4
 
 training:
   epochs: 5
   n_splits: 5
-  batch_size_options: [8]
+  batch_size_options: [16, 32]
 
   lr_range: [0.00001, 0.0001]
 
