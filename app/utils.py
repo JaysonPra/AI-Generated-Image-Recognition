@@ -1,14 +1,13 @@
 import streamlit as st
-import mlflow
 import torch
-from config.config import MODEL_NAME
+from config.config import CHAMPION_MODEL_DIR
+import mlflow
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 @st.cache_resource()
 def load_model():
-    model_uri = f"models:/{MODEL_NAME}@champion"    
-    model = mlflow.pytorch.load_model(model_uri)
+    model = mlflow.pytorch.load_model(str(CHAMPION_MODEL_DIR))
     model.to(DEVICE)
     model.eval()
     return model
