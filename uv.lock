@@ -14,6 +14,7 @@ dependencies = [
     { name = "pillow" },
     { name = "pydantic" },
     { name = "python-multipart" },
+    { name = "streamlit" },
     { name = "torch" },
     { name = "torchvision" },
 ]
@@ -38,6 +39,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "python-multipart", specifier = ">=0.0.22" },
     { name = "seaborn", marker = "extra == 'dev'", specifier = ">=0.13.2" },
+    { name = "streamlit", specifier = ">=1.55.0" },
     { name = "streamlit", marker = "extra == 'dev'", specifier = ">=1.54.0" },
     { name = "torch", specifier = ">=2.0.0" },
     { name = "torchvision", specifier = ">=0.15.0" },
