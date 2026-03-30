@@ -7,7 +7,10 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 @st.cache_resource()
 def load_model():
-    model = mlflow.pytorch.load_model(str(CHAMPION_MODEL_DIR))
+    model = mlflow.pytorch.load_model(
+        str(CHAMPION_MODEL_DIR),
+        map_location=torch.device('cpu')
+    )
     model.to(DEVICE)
     model.eval()
     return model
